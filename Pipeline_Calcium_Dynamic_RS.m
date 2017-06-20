@@ -20,12 +20,17 @@ end
 if ispc
     
 elseif ismac
+    cd('/Users/lizhu/Dropbox/projects/calcium/Calcium_Dynamics_Resting_State')
     load(['/Users/lizhu/Dropbox/GCaMP6f spont and tone reward/', ...
         folder_name,'/',mouse_name,'/Ca.mat']); % Calcium signals
     load(['/Users/lizhu/Dropbox/GCaMP6f spont and tone reward/', ...
         folder_name,'/',mouse_name,'/anglekeeper.mat']); % whisker signals
 elseif isunix
-    
+    cd('/home/lz206/Dropbox/projects/calcium/Calcium_Dynamics_Resting_State')
+    load(['/home/lz206/Dropbox/GCaMP6f spont and tone reward/', ...
+        folder_name,'/',mouse_name,'/Ca.mat']); % Calcium signals
+    load(['/home/lz206/Dropbox/GCaMP6f spont and tone reward/', ...
+        folder_name,'/',mouse_name,'/anglekeeper.mat']); % whisker signals
 end
 %--------------------------------------------------------------------------
 
