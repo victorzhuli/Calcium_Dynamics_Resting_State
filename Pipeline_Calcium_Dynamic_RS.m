@@ -51,11 +51,13 @@ else
     nTr = 16;
 end
 
+sampRate_whisk = 500;
 w_ln = 150 ; % whisker window length
 w_st = 25 ;  % whisker window step
 nLn  = 10000; % length of whisker time-series
 nWn  = (nLn - w_ln) / w_st+1; % # total window
 
+% Initiation. 0 will be non-whiskering, 1 will be whisking
 whisker_conv_win = nan(nTr, nWn);
 for iTr = 1: nTr
     for iWn = 1:nWn
@@ -71,13 +73,44 @@ whisker_conv_win(whisker_conv_win<threshold) = 0;
 whisker_conv_win(whisker_conv_win>threshold) = 1;
 diff_whisker_flag = diff(whisker_conv_win');
 diff_whisker_flag = diff_whisker_flag';
+
+% find the labels where non-whiskering is start and end
+Ind_RSstart = cell(nTr,1);  Ind_RSend = cell(nTr,1);  
+for iTr = 1:nTr
+    Ind_RSstart{iTr} = find(diff_whisker_flag(iTr,:) == -1);
+    Ind_RSend{iTr}   = find(diff_whisker_flag(iTr,:) == 1);
+    % detect whisking state at block beginning
+    if whisker_conv_win(iTr,1) == 0
+        Ind_RSstart{iTr} = [1, Ind_RSstart{iTr}];
+    end
+    if whisker_conv_win(iTr,end) == 0
+        Ind_RSend{iTr} = [Ind_RSend{iTr}, size(whisker_conv_win,2)];
+    end
+end
+    
+% set a threshold (th) where only keep non-whisker period that is longer than the th
+th_second = 5;
+th = th_second * sampRate_whisk/w_st;
+% initiate the start point of RS to be kept
+Ind_RSstart_eff = cell(iTr,1);
+for iTr = 1:nTr
+    for iPeriod = 1: length(Ind_RSstart{iTr})
+        period = Ind_RSend{iTr}(iPeriod) - Ind_RSstart{iTr}(iPeriod);
+        if period >= th
+            Ind_RSstart_eff{iTr} = [Ind_RSstart_eff{iTr}, Ind_RSstart{iTr}(iPeriod)];
+        end
+    end
+end
+            
+
+
 %--------------------------------------------------------------------------
 % Check point
 figure(1);clf;
 subplot(411);plot(Cal(8,:,1),'b');
-subplot(412);plot(anglekeeper(1,:)); xlim([0 length(anglekeeper(1,:))])
-subplot(413);plot(whisker_conv_win(1,:),'r')
-subplot(414);plot(diff_whisker_flag(1,:),'r')
+subplot(412);plot(anglekeeper(2,:)); xlim([0 length(anglekeeper(2,:))])
+subplot(413);plot(whisker_conv_win(2,:),'r')
+subplot(414);plot(diff_whisker_flag(2,:),'r')
 %--------------------------------------------------------------------------
 
 
