@@ -3,7 +3,7 @@
 %%
 mouse_id = 1;
 exp_session = 'am';
-%% Load HbO and HbR signals
+% Load HbO and HbR signals
 mouse_name = sprintf('GC6f_emx_%02d',mouse_id);
 
 if (mouse_id == 01 || mouse_id == 02 || mouse_id == 03) &&  strcmp(exp_session, 'am')
@@ -42,75 +42,20 @@ else
     Cal = Cal(:,1:2000,:);
 end
 %%
-%% label whisker and non-whisker segments
-threshold = 25;
-
-if (mouse_id == 2 && strcmp(exp_session, 'am')) || (mouse_id == 3 && strcmp(exp_session, 'pm')) 
-    nTr = 15;
-else
-    nTr = 16;
-end
-
-sampRate_whisk = 500;
-w_ln = 150 ; % whisker window length
-w_st = 25 ;  % whisker window step
-nLn  = 10000; % length of whisker time-series
-nWn  = (nLn - w_ln) / w_st+1; % # total window
-
-% Initiation. 0 will be non-whiskering, 1 will be whisking
-whisker_conv_win = nan(nTr, nWn);
-for iTr = 1: nTr
-    for iWn = 1:nWn
-        widx = [(iWn-1)*w_st+1, (iWn-1)*w_st+w_ln];
-        data2compute = anglekeeper(iTr,widx(1):widx(end));
-        data2compute = inpaint_nans(data2compute, 5); 
-            % interpolate NaN points using 8 neighbor average.
-        whisker_conv_win(iTr, iWn) = ...
-            std(data2compute - mean(data2compute)); % variance
-    end
-end
-whisker_conv_win(whisker_conv_win<threshold) = 0;
-whisker_conv_win(whisker_conv_win>threshold) = 1;
-diff_whisker_flag = diff(whisker_conv_win');
-diff_whisker_flag = diff_whisker_flag';
-
-% find the labels where non-whiskering is start and end
-Ind_RSstart = cell(nTr,1);  Ind_RSend = cell(nTr,1);  
-for iTr = 1:nTr
-    Ind_RSstart{iTr} = find(diff_whisker_flag(iTr,:) == -1);
-    Ind_RSend{iTr}   = find(diff_whisker_flag(iTr,:) == 1);
-    % detect whisking state at block beginning
-    if whisker_conv_win(iTr,1) == 0
-        Ind_RSstart{iTr} = [1, Ind_RSstart{iTr}];
-    end
-    if whisker_conv_win(iTr,end) == 0
-        Ind_RSend{iTr} = [Ind_RSend{iTr}, size(whisker_conv_win,2)];
-    end
-end
-    
-% set a threshold (th) where only keep non-whisker period that is longer than the th
-th_second = 5;
-th = th_second * sampRate_whisk/w_st;
-% initiate the start point of RS to be kept
-Ind_RSstart_eff = cell(iTr,1);
-for iTr = 1:nTr
-    for iPeriod = 1: length(Ind_RSstart{iTr})
-        period = Ind_RSend{iTr}(iPeriod) - Ind_RSstart{iTr}(iPeriod);
-        if period >= th
-            Ind_RSstart_eff{iTr} = [Ind_RSstart_eff{iTr}, Ind_RSstart{iTr}(iPeriod)];
-        end
-    end
-end
-            
-
-
+RS_eff = lz_labeling_nonWhisking(mouse_id, exp_session);
 %--------------------------------------------------------------------------
-% Check point
+%% Check point
+ch2plot = 8; tr2plot = 16;
 figure(1);clf;
-subplot(411);plot(Cal(8,:,1),'b');
-subplot(412);plot(anglekeeper(2,:)); xlim([0 length(anglekeeper(2,:))])
-subplot(413);plot(whisker_conv_win(2,:),'r')
-subplot(414);plot(diff_whisker_flag(2,:),'r')
+subplot(411);plot(Cal(ch2plot,:,1),'b'); title(['Channel ',num2str(ch2plot),', Trial ',num2str(tr2plot)]);
+hold on; 
+for iRS = 1: length(RS_eff.ind_start_cal{tr2plot})
+    h1 = vline(RS_eff.ind_start_cal{tr2plot}(iRS),'k'); set(h1, 'linew', 2);
+    h2 = vline(RS_eff.ind_end_cal{tr2plot}(iRS),'r'); set(h2, 'linew', 2);
+end
+subplot(412);plot(anglekeeper(tr2plot,:)); xlim([0 length(anglekeeper(tr2plot,:))]);
+subplot(413);stem(whisker_conv_win(tr2plot,:),'r');  ylim([-.5, 1.5]);
+subplot(414);stem(diff_whisker_flag(tr2plot,:),'r'); ylim([-1.5, 1.5]);
 %--------------------------------------------------------------------------
 
 
