@@ -105,6 +105,6 @@ for iTr = 1:nTr
     % move every end index to (w_ln-1)/5 points backward
     RS_eff.ind_end_cal{iTr} = RS_eff.ind_end_cal{iTr} - (w_ln-1)/5;
     if whisker_conv_win(iTr,end) == 0 && Ind_RSstart{iTr}(end) < (10000 - th_second * 500)/w_st % 500 is the sampling rate of whisker signal
-        RS_eff.ind_end_cal{iTr}(end) = size(2000,2); % 2000 is the length of Calcium signal  
+        RS_eff.ind_end_cal{iTr}(end) = 2000; % 2000 is the length of Calcium signal  
     end
 end
