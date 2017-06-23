@@ -69,7 +69,7 @@ combine_RS_ind_wc
 %==========================================================================
 %% Check point for wavelet coherence ======================================
 %% plot two raw calcium signals and their wavelet coherence
-mouse_id = 1; exp_session = 'am'; iTr = 1; iCh = 1; jCh = iCh+18;
+mouse_id = 1; exp_session = 'am'; iTr = 1; iCh = 1; jCh = iCh+18; nCh = 30;
 [folder_name, mouse_name, loadName_RS_ind, loadName_wc] = lz_build_folder_name(mouse_id, exp_session);
 if ispc
 elseif ismac
@@ -78,6 +78,8 @@ elseif ismac
     load(['/Users/lizhu/Dropbox/projects/calcium/Calcium_Dynamics_Resting_State/wcoherence/',loadName_wc]);
 elseif isunix
 end
+% locate index in the saved wcoh variable
+ind_wcoh = lz_ind_loc_wcoh(iCh, jCh, nCh);
 
 % change cell to matrix: channel X time X trial
 Cal = reshape(cell2mat(Ca.Ch0), 30, 2047, size(Ca.Ch0,2));
@@ -102,7 +104,7 @@ for iRS = 1: length(RS_eff.ind_start_cal{iTr})
     h2 = vline(RS_eff.ind_end_cal{iTr}(iRS)/100,'r'); set(h2, 'linew', 2);
 end
 subplot(4,1,[3,4])
-helperPlotCoherence(wcoh(:,:,  ,iTr),linspace(0,20,2000),f,coi,'Seconds','Hz');
+helperPlotCoherence(wcoh(:,:,ind_wcoh  ,iTr),linspace(0,20,2000),f,coi,'Seconds','Hz');
 
 
 
