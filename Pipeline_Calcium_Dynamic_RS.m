@@ -39,23 +39,28 @@ for mouse_id = 1:6
     for iexp_session = 1:2
         exp_session = exp_session_array{iexp_session};
         
+        %--------------------------------------------------------------------------
+        %--------------------------------------------------------------------------
+        % call function
+        fprintf('\n\nComputing wavelet coherence on mouse %d, ''%s'' ......\n', mouse_id, exp_session);
         [wcoh,f,coi] = lz_calcium_wavelet_coherence(mouse_id, exp_session);              
-        
-        saveName = sprintf('GC6f_emx_%02d_%2s_spont_resting_state_wcoherence', mouse_id, exp_session);
-        if ispc
-            save(['C:\Users\Li_Lab537\Dropbox\projects\calcium\Calcium_Dynamics_Resting_State\wcoherence\',saveName], 'wcoh', 'f', 'coi');
-        elseif ismac
-            
-        elseif isunix
-            save(['/home/lz206/Dropbox/projects/calcium/Calcium_Dynamics_Resting_State/wcoherence/',saveName], 'wcoh', 'f', 'coi');
-        end
+        %--------------------------------------------------------------------------
+        %--------------------------------------------------------------------------
 
+%         saveName = sprintf('GC6f_emx_%02d_%2s_spont_resting_state_wcoherence', mouse_id, exp_session);
+%         if ispc
+%             save(['C:\Users\Li_Lab537\Dropbox\projects\calcium\Calcium_Dynamics_Resting_State\wcoherence\',saveName], 'wcoh', 'f', 'coi', '-v7.3');
+%         elseif ismac
+%             
+%         elseif isunix
+%             save(['/home/lz206/Dropbox/projects/calcium/Calcium_Dynamics_Resting_State/wcoherence/',saveName], 'wcoh', 'f', 'coi', '-v7.3');
+%         end
     end
 end
-                
-                
-                
-                
+
+%% combine 'am' and 'pm' for both NA label and WC pattern
+%%%% unfortunately: out of memory!!
+combine_RS_ind_wc            
                 
                 
                 
@@ -63,35 +68,41 @@ end
                 
 %==========================================================================
 %% Check point for wavelet coherence ======================================
-%% plot raw calcium signals for the channels involoved in wavelet coherence
-
-%figure;
-%helperPlotCoherence(wcoh,linspace(0,20,2000),f,coi,'Seconds','Hz');
-                    
+%% plot two raw calcium signals and their wavelet coherence
 mouse_id = 1; exp_session = 'am'; iTr = 1; iCh = 1; jCh = iCh+18;
-[folder_name, mouse_name] = lz_build_folder_name(mouse_id, exp_session);
+[folder_name, mouse_name, loadName_RS_ind, loadName_wc] = lz_build_folder_name(mouse_id, exp_session);
 if ispc
 elseif ismac
     load(['/Users/lizhu/Dropbox/GCaMP6f spont and tone reward/',folder_name,'/',mouse_name,'/Ca.mat']);
-    load(['/Users/lizhu/Dropbox/projects/calcium/Calcium_Dynamics_Resting_State/RS_index/',loadName]);
+    load(['/Users/lizhu/Dropbox/projects/calcium/Calcium_Dynamics_Resting_State/RS_index/',loadName_RS_ind]);
+    load(['/Users/lizhu/Dropbox/projects/calcium/Calcium_Dynamics_Resting_State/wcoherence/',loadName_wc]);
 elseif isunix
 end
 
-figure(2);clf;
-subplot(211);plot(linspace(0,20,2000), Cal(iCh,:,iTr),'k'); 
-title(['Calcium Signal, Channel ',num2str(iCh),', Trial ',num2str(iTr)]);
-hold on; 
-for iRS = 1: length(RS_eff.ind_start_cal{tr2plot})
-    h1 = vline(RS_eff.ind_start_cal{tr2plot}(iRS)/100,'b'); set(h1, 'linew', 2);
-    h2 = vline(RS_eff.ind_end_cal{tr2plot}(iRS)/100,'r'); set(h2, 'linew', 2);
-end
-subplot(212);plot(linspace(0,20,2000), Cal(jCh,:,iTr),'k'); 
-title(['Calcium Signal, Channel ',num2str(jCh),', Trial ',num2str(iTr)]);
-for iRS = 1: length(RS_eff.ind_start_cal{tr2plot})
-    h1 = vline(RS_eff.ind_start_cal{tr2plot}(iRS)/100,'b'); set(h1, 'linew', 2);
-    h2 = vline(RS_eff.ind_end_cal{tr2plot}(iRS)/100,'r'); set(h2, 'linew', 2);
+% change cell to matrix: channel X time X trial
+Cal = reshape(cell2mat(Ca.Ch0), 30, 2047, size(Ca.Ch0,2));
+if (mouse_id == 03 && strcmp(exp_session, 'pm'))
+    Cal = Cal(:, 1:2000, [1:11,13:16]);
+else
+    Cal = Cal(:,1:2000,:);
 end
 
+figure(2);clf;
+subplot(411);plot(linspace(0,20,2000), Cal(iCh,:,iTr),'k'); 
+title(['Calcium Signal, Channel ',num2str(iCh),', Trial ',num2str(iTr)]);
+hold on; 
+for iRS = 1: length(RS_eff.ind_start_cal{iTr})
+    h1 = vline(RS_eff.ind_start_cal{iTr}(iRS)/100,'b'); set(h1, 'linew', 2);
+    h2 = vline(RS_eff.ind_end_cal{iTr}(iRS)/100,'r'); set(h2, 'linew', 2);
+end
+subplot(412);plot(linspace(0,20,2000), Cal(jCh,:,iTr),'k'); 
+title(['Calcium Signal, Channel ',num2str(jCh),', Trial ',num2str(iTr)]);
+for iRS = 1: length(RS_eff.ind_start_cal{iTr})
+    h1 = vline(RS_eff.ind_start_cal{iTr}(iRS)/100,'b'); set(h1, 'linew', 2);
+    h2 = vline(RS_eff.ind_end_cal{iTr}(iRS)/100,'r'); set(h2, 'linew', 2);
+end
+subplot(4,1,[3,4])
+helperPlotCoherence(wcoh(:,:,  ,iTr),linspace(0,20,2000),f,coi,'Seconds','Hz');
 
 
 

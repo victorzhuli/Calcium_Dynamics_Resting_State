@@ -20,10 +20,10 @@ if (mouse_id == 03 && strcmp(exp_session, 'pm'))
 else
     Cal = Cal(:,1:2000,:);
 end
-nTr = size(Cal,1);
+nTr = size(Cal,3);
 
 % initiate
-wcoh = non(109,2000,30*29/2,nTr);
+wcoh = nan(109,2000,30*29/2,nTr); % 109 is the number of frequency bins
 for iTr = 1:nTr
     iChan_pair = 1;
     for iCh = 1:30
