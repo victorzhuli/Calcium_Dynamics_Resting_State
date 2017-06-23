@@ -13,40 +13,92 @@ exp_session_array = {'am', 'pm'};
 
 for mouse_id = 1:6
     for iexp_session = 1:2
-       
         exp_session = exp_session_array{iexp_session};
         
+        %--------------------------------------------------------------------------
         %--------------------------------------------------------------------------
         % call function
         RS_eff = lz_labeling_nonWhisking(mouse_id, exp_session);
         %--------------------------------------------------------------------------
+        %--------------------------------------------------------------------------
         
-        saveName = sprintf('GC6f_emx_%02d_%2s_spont_resting_state_index', mouse_id, exp_session);
-        
-        if ispc
-            save(['C:\Users\Li_Lab537\Dropbox\projects\calcium\Calcium_Dynamics_Resting_State\RS_index\',saveName], 'RS_eff');
-        elseif ismac
-            
-        elseif isunix
-            save(['/home/lz206/Dropbox/projects/calcium/Calcium_Dynamics_Resting_State/RS_index/',saveName], 'RS_eff');
-        end
+%         saveName = sprintf('GC6f_emx_%02d_%2s_spont_resting_state_index', mouse_id, exp_session);
+%         if ispc
+%             save(['C:\Users\Li_Lab537\Dropbox\projects\calcium\Calcium_Dynamics_Resting_State\RS_index\',saveName], 'RS_eff');
+%         elseif ismac
+%             
+%         elseif isunix
+%             save(['/home/lz206/Dropbox/projects/calcium/Calcium_Dynamics_Resting_State/RS_index/',saveName], 'RS_eff');
+%         end
         
     end
 end
 %% compute continuous wavelet coherence for each trial
-%% 
+%%
+for mouse_id = 1:6
+    for iexp_session = 1:2
+        exp_session = exp_session_array{iexp_session};
+        
+        [wcoh,f,coi] = lz_calcium_wavelet_coherence(mouse_id, exp_session);              
+        
+        saveName = sprintf('GC6f_emx_%02d_%2s_spont_resting_state_wcoherence', mouse_id, exp_session);
+        if ispc
+            save(['C:\Users\Li_Lab537\Dropbox\projects\calcium\Calcium_Dynamics_Resting_State\wcoherence\',saveName], 'wcoh', 'f', 'coi');
+        elseif ismac
+            
+        elseif isunix
+            save(['/home/lz206/Dropbox/projects/calcium/Calcium_Dynamics_Resting_State/wcoherence/',saveName], 'wcoh', 'f', 'coi');
+        end
 
+    end
+end
+                
+                
+                
+                
+                
+                
+                
+                
+                
+%==========================================================================
+%% Check point for wavelet coherence ======================================
+%% plot raw calcium signals for the channels involoved in wavelet coherence
 
+%figure;
+%helperPlotCoherence(wcoh,linspace(0,20,2000),f,coi,'Seconds','Hz');
+                    
+mouse_id = 1; exp_session = 'am'; iTr = 1; iCh = 1; jCh = iCh+18;
+[folder_name, mouse_name] = lz_build_folder_name(mouse_id, exp_session);
+if ispc
+elseif ismac
+    load(['/Users/lizhu/Dropbox/GCaMP6f spont and tone reward/',folder_name,'/',mouse_name,'/Ca.mat']);
+    load(['/Users/lizhu/Dropbox/projects/calcium/Calcium_Dynamics_Resting_State/RS_index/',loadName]);
+elseif isunix
+end
 
+figure(2);clf;
+subplot(211);plot(linspace(0,20,2000), Cal(iCh,:,iTr),'k'); 
+title(['Calcium Signal, Channel ',num2str(iCh),', Trial ',num2str(iTr)]);
+hold on; 
+for iRS = 1: length(RS_eff.ind_start_cal{tr2plot})
+    h1 = vline(RS_eff.ind_start_cal{tr2plot}(iRS)/100,'b'); set(h1, 'linew', 2);
+    h2 = vline(RS_eff.ind_end_cal{tr2plot}(iRS)/100,'r'); set(h2, 'linew', 2);
+end
+subplot(212);plot(linspace(0,20,2000), Cal(jCh,:,iTr),'k'); 
+title(['Calcium Signal, Channel ',num2str(jCh),', Trial ',num2str(iTr)]);
+for iRS = 1: length(RS_eff.ind_start_cal{tr2plot})
+    h1 = vline(RS_eff.ind_start_cal{tr2plot}(iRS)/100,'b'); set(h1, 'linew', 2);
+    h2 = vline(RS_eff.ind_end_cal{tr2plot}(iRS)/100,'r'); set(h2, 'linew', 2);
+end
 
 
 
 
 
 %==========================================================================
-%% Check point ============================================================
-mouse_id = 1; exp_session = 'am'; ch2plot = 8; tr2plot = 6;
-mouse_name = sprintf('GC6f_emx_%02d',mouse_id);
+%% Check point for non-whisking labeling ==================================
+mouse_id = 1; exp_session = 'am'; ch2plot = 1; tr2plot = 1;
 
 % Load HbO and HbR signals
 mouse_name = sprintf('GC6f_emx_%02d',mouse_id);
