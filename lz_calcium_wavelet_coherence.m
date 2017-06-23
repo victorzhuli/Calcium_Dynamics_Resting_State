@@ -33,3 +33,12 @@ for iTr = 1:nTr
         end
     end
 end
+
+saveName = sprintf('GC6f_emx_%02d_%2s_spont_resting_state_wcoherence', mouse_id, exp_session);
+if ispc
+    save(['C:\Users\Li_Lab537\Dropbox\projects\calcium\Calcium_Dynamics_Resting_State\wcoherence\',saveName], 'wcoh', 'f', 'coi', '-v7.3');
+elseif ismac
+    
+elseif isunix
+    save(['/home/lz206/Dropbox/projects/calcium/Calcium_Dynamics_Resting_State/wcoherence/',saveName], 'wcoh', 'f', 'coi', '-v7.3');
+end

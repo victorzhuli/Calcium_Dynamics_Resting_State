@@ -108,3 +108,12 @@ for iTr = 1:nTr
         RS_eff.ind_end_cal{iTr}(end) = 2000; % 2000 is the length of Calcium signal  
     end
 end
+
+saveName = sprintf('GC6f_emx_%02d_%2s_spont_resting_state_index', mouse_id, exp_session);
+if ispc
+    save(['C:\Users\Li_Lab537\Dropbox\projects\calcium\Calcium_Dynamics_Resting_State\RS_index\',saveName], 'RS_eff');
+elseif ismac
+    save(['/Users/lizhu/Dropbox/projects/calcium/Calcium_Dynamics_Resting_State/RS_index/',saveName], 'RS_eff');
+elseif isunix
+    save(['/home/lz206/Dropbox/projects/calcium/Calcium_Dynamics_Resting_State/RS_index/',saveName], 'RS_eff');
+end
