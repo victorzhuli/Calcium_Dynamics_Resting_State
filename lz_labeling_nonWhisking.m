@@ -1,17 +1,7 @@
 %% label whisker and non-whisker segments
 function RS_eff = lz_labeling_nonWhisking(mouse_id, exp_session)
 
-mouse_name = sprintf('GC6f_emx_%02d',mouse_id);
-
-if (mouse_id == 01 || mouse_id == 02 || mouse_id == 03) &&  strcmp(exp_session, 'am')
-    folder_name = '150421am GC6-emx 1-3 spont';
-elseif (mouse_id == 01 || mouse_id == 02 || mouse_id == 03) &&  strcmp(exp_session, 'pm')
-    folder_name = '150421pm GC6-emx 1-3 spont';
-elseif (mouse_id == 04 || mouse_id == 05 || mouse_id == 06) &&  strcmp(exp_session, 'am')
-    folder_name = '150609am GC6-emx 4-6 spont';
-else
-    folder_name = '150609pm GC6-emx 4-6 spont';
-end
+[folder_name, mouse_name] = lz_build_folder_name(mouse_id, exp_session);
 
 %--------------------------------------------------------------------------
 if ispc
@@ -103,7 +93,7 @@ for iTr = 1:nTr
     RS_eff.ind_start_cal{iTr} = (RS_eff.ind_start{iTr} - 1) * w_st/5 + 1;
     RS_eff.ind_end_cal{iTr}   = (RS_eff.ind_end{iTr} - 1) * w_st/5 + 1;
     % move every end index to (w_ln-1)/5 points backward
-    RS_eff.ind_end_cal{iTr} = RS_eff.ind_end_cal{iTr} - (w_ln-1)/5;
+    RS_eff.ind_end_cal{iTr} = RS_eff.ind_end_cal{iTr} - w_ln/5;
     if whisker_conv_win(iTr,end) == 0 && Ind_RSstart{iTr}(end) < (10000 - th_second * 500)/w_st % 500 is the sampling rate of whisker signal
         RS_eff.ind_end_cal{iTr}(end) = 2000; % 2000 is the length of Calcium signal  
     end
