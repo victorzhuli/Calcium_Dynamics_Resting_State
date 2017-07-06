@@ -76,26 +76,77 @@ end
 
 %% based on the pool index for NA/WA scalegrams, conduct permutation test across subjects for NW vs. WA
 %% exclude mouse 3 pm !!!!!!! becasue of sparse WA
-pVal = 0.05;
+pVal = 0.01;
 [wc_permut_pval, wc_permut_t_orig, wc_permut_crit_t, wc_permut_est_alpha] ...
     = lz_permutation_NW_WA_2(pVal);
+% plot resulted p values for all freq bins and channel pairs
+load('f'); nCh = 30; nChPair = nCh*(nCh-1)/2;
+figure(12); clf; %imagesc(1:nChPair, f, wc_permut_t_orig); 
 
-%%%% take entire frequency bins, decide significant changes 
-nCh = 30; nChPair = nCh*(nCh-1)/2;
-% initial
-pVal_th = ones(nChPair, 1);
-for iChPair = 1:nChPair
-    if min(wc_permut_t_orig(:,iChPair)>0.05)
-        pVal_th(iChPair) = 0;
-    end
-end
-        
-        
-load('f');
-figure(12); clf; imagesc(1:nChPair, f, wc_permut_t_orig); 
+surf(1:nChPair, f, zeros(size(wc_permut_t_orig)),'CData',wc_permut_t_orig, 'Linestyle','none')
+view(0,90)
+set(gca,'yscale','log')
+xlim([1 nChPair]); ylim([0 f(1)])
 xlabel('Channel Pair'); ylabel('Frequency (Hz)'); title('Permutation Test Result (t-val)')
 set(gca, 'fontsize', 20, 'linew',2);
 colorbar
+
+%%%% take entire frequency bins, decide significant changes 
+% initial
+t_orig_pos = zeros(nChPair, 1);
+t_orig_neg = zeros(nChPair, 1);
+t_orig_pos_freq = cell(nChPair, 1); % where does the peak t value appear
+t_orig_neg_freq = cell(nChPair, 1);
+for iChPair = 1:nChPair
+    if max(wc_permut_t_orig(:,iChPair)) > wc_permut_crit_t(2,iChPair)
+        t_orig_pos(iChPair) = 1;
+        [~,ind] = max(wc_permut_t_orig(:,iChPair));
+        t_orig_pos_freq(iChPair) = f(ind);
+    end
+    if min(wc_permut_t_orig(:,iChPair)) < wc_permut_crit_t(1,iChPair)
+        t_orig_neg(iChPair) = 1;
+        [~,ind] = min(wc_permut_t_orig(:,iChPair));
+        t_orig_neg_freq(iChPair) = f(ind);
+    end
+end
+t_orig_pos_freq = find(wc_permut_t_orig > 
+% plot channel connection matrix
+diff_mat_pos = nan(nCh, nCh);
+diff_mat_neg = nan(nCh, nCh);
+diff_mat_pos_freq  = nan(nCh, nCh);
+diff_mat_neg_freq  = nan(nCh, nCh);
+for iCh = 1: nCh
+    diff_mat_pos(iCh, iCh) = 0;
+    diff_mat_neg(iCh, iCh) = 0;
+    diff_mat_pos_freq(iCh, iCh) = 0;
+    diff_mat_neg_freq(iCh, iCh) = 0;
+    for jCh = iCh + 1 : nCh
+        ind_wcoh = lz_ind_loc_wcoh(iCh, jCh, nCh);      
+        diff_mat_pos(iCh, jCh) = t_orig_pos(ind_wcoh);
+        diff_mat_pos(jCh, iCh) = diff_mat_pos(iCh, jCh);
+        diff_mat_pos_freq(iCh, jCh) = t_orig_pos_freq(ind_wcoh);
+        diff_mat_pos_freq(jCh, iCh) = diff_mat_pos_freq(iCh, jCh);
+        diff_mat_neg(iCh, jCh) = t_orig_neg(ind_wcoh);
+        diff_mat_neg(jCh, iCh) = diff_mat_neg(iCh, jCh);
+        diff_mat_neg_freq(iCh, jCh) = t_orig_neg_freq(ind_wcoh);
+        diff_mat_neg_freq(jCh, iCh) = diff_mat_neg_freq(iCh, jCh);
+    end
+end
+figure(14); clf; 
+subplot(121);imagesc(diff_mat_pos); title('FC pattern (NW > WA)')
+colormap('gray');axis square; colorbar;
+subplot(122);imagesc(diff_mat_neg); title('FC pattern (NW < WA)')
+colormap('gray');axis square; colorbar;
+
+figure(15); clf;
+subplot(121); imagesc(diff_mat_pos_freq); title('The associated freq bin on which peak tVal obtained for NW>WA')
+colormap('jet');axis square; c = colorbar; ylabel(c,'Hz');
+subplot(122); imagesc(diff_mat_neg_freq); title('The associated freq bin on which peak tVal obtained for NW<WA')
+colormap('jet');axis square; c = colorbar; ylabel(c,'Hz');
+        
+  
+        
+
 
 %% 
 
